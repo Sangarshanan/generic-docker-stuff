@@ -1,0 +1,41 @@
+version: '2.1'
+services:
+  postgis:
+    build:
+      context: postgis-docker
+    ports:
+      - 25432:5432
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  osm2postgres:
+    build:
+      context: osm2postgres
+    environment:
+      - PGPASSWORD=postgres
+    depends_on:
+      postgis:
+        condition: service_healthy
+    command: >
+        bash -c 'osm2pgsql data/micronesia-latest.osm.pbf -d postgres -U postgres -H postgis -P 5432 --hstore
+        && osm2pgrouting --f data/micronesia-latest.osm --conf mapconfig.xml -d postgres -U postgres -h postgis -p 5432 -W postgres --clean'
+    volumes:
+        - ./data:/data
+
+  osrm_build:
+    image: osrm/osrm-backend
+    container_name: osrm
+    command: >
+        bash -c "rsync -a -v --ignore-existing /data/micronesia-latest.osm.pbf /osrm-data/
+        && ./osrm-extract -p /osrm-build/profile.lua /osrm-data/micronesia-latest.osm.pbf
+        && ./osrm-contract /osrm-data/micronesia-latest.osrm"
+    volumes:
+        - ./data:/data
+        - ./osrm-data:/osrm-data

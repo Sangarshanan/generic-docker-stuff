@@ -1,0 +1,87 @@
+version: '2'
+
+services:
+
+  postgres:
+    image: postgres:10
+    environment:
+        - POSTGRES_USER=airflow
+        - POSTGRES_PASSWORD=airflow
+        - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+
+  webserver:
+    build: docker/airflow
+    restart: always
+    depends_on:
+        - postgres
+    environment:
+        - LOAD_EX=n
+        - EXECUTOR=Local
+    volumes:
+        - ./dags:/usr/local/airflow/dags
+        - ./pyspark:/usr/local/spark/pyspark
+        - ./target/scala-2.12:/usr/local/spark/scala-2.12
+    ports:
+        - "8282:8080"
+    command: webserver
+    healthcheck:
+        test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+        interval: 30s
+        timeout: 30s
+        retries: 3
+
+  spark:
+    image: bitnami/spark:3.0.1
+    hostname: spark
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+        - ./pyspark:/usr/local/spark/pyspark
+        - ./target/scala-2.12:/usr/local/spark/scala-2.12
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+
+  spark-worker-1:
+    image: bitnami/spark:3.0.1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+        - ./pyspark:/usr/local/spark/pyspark
+        - ./target/scala-2.12:/usr/local/spark/scala-2.12
+
+  spark-worker-2:
+    image: bitnami/spark:3.0.1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+        - ./pyspark:/usr/local/spark/pyspark
+        - ./target/scala-2.12:/usr/local/spark/scala-2.12
+
+  jupyter:
+    image: jupyter/pyspark-notebook:5cb007f03275
+    ports:
+        - "8888:8888"
+        - "4040-4080:4040-4080"
+    volumes:
+        - ./pyspark:/home/jovyan/work/notebooks/
