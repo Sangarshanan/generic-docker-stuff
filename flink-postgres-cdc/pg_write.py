@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS
     test (
     user_id serial PRIMARY KEY,
     name VARCHAR(50),
-    value integer);
+    score integer);
     """
 con.execute(create_table)
 
@@ -41,8 +41,8 @@ while True:
     name = random_string()
     number = random_number()
     insert_table = f"""
-    INSERT INTO test (name, value)
+    INSERT INTO test (name, score)
     VALUES('{name}', {number});"""
     con.execute(insert_table)
     print(insert_table)
-    time.sleep(3)
+    time.sleep(5)

@@ -1,8 +1,8 @@
-# Pipeline
+# Flink CDC Postgres
 
 Start the containers
 
-- **Postgres** 
+- **Postgres**
 Postgres is the source which is periodically populates with `pg_write.py`
 - **Debezium**
 The debezium connector produces a change event for every row-level insert, update, and delete operation that was captured and sends change event records for each table in a separate Kafka topic
@@ -56,6 +56,5 @@ Shut this shit down
 ```bash
 docker-compose -f docker-compose.yaml down
 ```
-
 
 - https://noti.st/morsapaes/liQzgs/change-data-capture-with-flink-sql-and-debezium
