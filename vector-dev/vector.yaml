@@ -1,0 +1,49 @@
+data_dir: "/vector-data-dir"
+sources:
+  my_source:
+    type: demo_logs
+    format: json
+    interval: 1
+
+transforms:
+  my_transform:
+    type: remap
+    inputs:
+      - my_source
+    source: |-
+      . = parse_json!(.message)
+      .event_name = "THIS EVENT"
+      .timestamp = now()
+      del(.bytes)
+
+  delete_filter:
+    type: filter
+    inputs:
+      - my_transform
+    condition: contains!(.method, "DELETE")
+  put_filter:
+    type: filter
+    inputs:
+      - my_transform
+    condition: contains!(.method, "PUT")
+  option_filter:
+    type: filter
+    inputs:
+      - my_transform
+    condition: contains!(.method, "OPTION")
+  head_filter:
+    type: filter
+    inputs:
+      - my_transform
+    condition: contains!(.method, "HEAD")
+
+sinks:
+  my_sink_id:
+    type: file
+    inputs:
+    - my_filter
+    compression: none
+    encoding:
+      codec: ndjson
+    healthcheck: false
+    path: /tmp/vector-%Y-%m-%d.log
