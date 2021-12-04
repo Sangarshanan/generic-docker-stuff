@@ -34,32 +34,32 @@ services:
      - CONFIG_STORAGE_TOPIC=my_connect_configs
      - OFFSET_STORAGE_TOPIC=my_connect_offsets
      - STATUS_STORAGE_TOPIC=my_connect_statuses
-  jobmanager:
-    build:
-      context: .
-      dockerfile: Dockerfile-flink
-    image: pyflink/pyflink:1.12.1-scala_2.11
-    volumes:
-      - .:/opt/pg-kafka-flink-druid
-    hostname: "jobmanager"
-    expose:
-      - "6123"
-    ports:
-      - "8081:8081"
-    command: jobmanager
-    environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
-  taskmanager:
-    image: pyflink/pyflink:1.12.1-scala_2.11
-    volumes:
-    - .:/opt/pg-kafka-flink-druid
-    expose:
-      - "6121"
-      - "6122"
-    depends_on:
-      - jobmanager
-    command: taskmanager
-    links:
-      - jobmanager:jobmanager
-    environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+  # jobmanager:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile-flink
+  #   image: pyflink/pyflink:1.12.1-scala_2.11
+  #   volumes:
+  #     - .:/opt/pg-kafka-flink-druid
+  #   hostname: "jobmanager"
+  #   expose:
+  #     - "6123"
+  #   ports:
+  #     - "8081:8081"
+  #   command: jobmanager
+  #   environment:
+  #     - JOB_MANAGER_RPC_ADDRESS=jobmanager
+  # taskmanager:
+  #   image: pyflink/pyflink:1.12.1-scala_2.11
+  #   volumes:
+  #   - .:/opt/pg-kafka-flink-druid
+  #   expose:
+  #     - "6121"
+  #     - "6122"
+  #   depends_on:
+  #     - jobmanager
+  #   command: taskmanager
+  #   links:
+  #     - jobmanager:jobmanager
+  #   environment:
+  #     - JOB_MANAGER_RPC_ADDRESS=jobmanager
